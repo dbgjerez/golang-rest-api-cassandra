@@ -15,7 +15,8 @@ const (
 )
 
 const (
-	PATH = "/todo"
+	PathGetAll = "/todo"
+	PathPost   = PathGetAll
 )
 
 const (
@@ -29,7 +30,8 @@ func main() {
 	log.Println(INFO, "Servidor iniciado")
 	router := mux.NewRouter()
 
-	router.HandleFunc(PATH, GetTodo).Methods(GET)
+	router.HandleFunc(PathGetAll, GetTodo).Methods(GET)
+	router.HandleFunc(PathPost, PostTodo).Methods(POST)
 
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
