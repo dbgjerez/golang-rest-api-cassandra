@@ -30,9 +30,15 @@ const (
 func main() {
 	log.Println(INFO, "Servidor iniciado")
 
+	s := todo.InitCluster()
+
 	router := mux.NewRouter()
-	router.HandleFunc(PathGetAll, todo.GetTodo).Methods(GET)
-	router.HandleFunc(PathPost, todo.PostTodo).Methods(POST)
+	router.HandleFunc(PathGetAll, func(writer http.ResponseWriter, request *http.Request) {
+		todo.GetTodo(writer, request, s)
+	}).Methods(GET)
+	router.HandleFunc(PathPost, func(writer http.ResponseWriter, request *http.Request) {
+		todo.PostTodo(writer, request, s)
+	}).Methods(POST)
 
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
