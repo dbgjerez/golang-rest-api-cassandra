@@ -28,11 +28,10 @@ func PostTodo(writer http.ResponseWriter, request *http.Request, session *gocql.
 
 func findAll(session *gocql.Session) []Todo {
 	var ts []Todo
-	var id gocql.UUID
-	var text string
+	var t Todo
 	it := session.Query(SELECT).Iter()
-	for it.Scan(&id, &text) {
-		ts = append(ts, Todo{id, text})
+	for it.Scan(&t.ID, &t.Name) {
+		ts = append(ts, t)
 	}
 	if err := it.Close(); err != nil {
 		log.Println(LOG_ERROR, err)
