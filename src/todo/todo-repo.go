@@ -23,14 +23,18 @@ func GetTodo(writer http.ResponseWriter, request *http.Request, session *gocql.S
 func PostTodo(writer http.ResponseWriter, request *http.Request, session *gocql.Session) {
 	var t Todo
 	json.NewDecoder(request.Body).Decode(&t)
+	save(session, &t)
 }
 
-func findAll(session *gocql.Session) Todo {
-	var t Todo
-	if err := session.Query(SELECT).PageSize(2).Scan(&t.ID, &t.Name); err != nil {
-		log.Println(LOG_ERROR, err)
+func findAll(session *gocql.Session) []Todo {
+	var ts []Todo
+	var id int
+	var text string
+	it := session.Query(SELECT).Iter()
+	for it.Scan(&id, &text) {
+		ts = append(ts, Todo{id, text})
 	}
-	return t
+	return ts
 }
 
 func save(session *gocql.Session, todo *Todo) {
