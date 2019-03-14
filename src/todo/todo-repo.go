@@ -28,18 +28,21 @@ func PostTodo(writer http.ResponseWriter, request *http.Request, session *gocql.
 
 func findAll(session *gocql.Session) []Todo {
 	var ts []Todo
-	var id int
+	var id gocql.UUID
 	var text string
 	it := session.Query(SELECT).Iter()
 	for it.Scan(&id, &text) {
 		ts = append(ts, Todo{id, text})
+	}
+	if err := it.Close(); err != nil {
+		log.Println(LOG_ERROR, err)
 	}
 	return ts
 }
 
 func save(session *gocql.Session, todo *Todo) {
 	if err := session.Query(INSERT,
-		todo.ID, todo.Name).Exec(); err != nil {
+		gocql.TimeUUID(), todo.Name).Exec(); err != nil {
 		log.Println(LOG_ERROR, err)
 	}
 }

@@ -1,6 +1,8 @@
 package todo
 
+import "github.com/gocql/gocql"
+
 type Todo struct {
-	ID   int    `json:"id,omitempty"`
-	Name string `json:"name,omitempty"`
+	ID   gocql.UUID `json:"id,omitempty"`
+	Name string     `json:"name,omitempty"`
 }
