@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/dbgjerez/go-todo-rest-api-cassandra/src/todo"
 	"github.com/gorilla/mux"
 	"log"
@@ -13,6 +14,13 @@ const (
 	DEBUG LogLevel = "DEBUG"
 	INFO  LogLevel = "INFO"
 	ERROR LogLevel = "ERROR"
+)
+
+const (
+	LOG_POST    = "Creando todo: "
+	LOG_GET_ALL = "Buscando todos los todo"
+	LOG_GET_ONE = "Recuperando todo con id:"
+	LOG_DELETE  = "Eliminando todo con id:"
 )
 
 const (
@@ -35,10 +43,14 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc(PathGetAll, func(writer http.ResponseWriter, request *http.Request) {
+		log.Println(DEBUG, LOG_GET_ALL)
 		todo.GetTodo(writer, request, s)
 	}).Methods(GET)
 	router.HandleFunc(PathPost, func(writer http.ResponseWriter, request *http.Request) {
-		todo.PostTodo(writer, request, s)
+		var todo *todo.Todo
+		json.NewDecoder(request.Body).Decode(&todo)
+		log.Println(DEBUG, LOG_POST, todo)
+		todo.PostTodo(writer, todo, s)
 	}).Methods(POST)
 	router.HandleFunc(PathDelete, func(writer http.ResponseWriter, request *http.Request) {
 		todo.DeleteOne(writer, request, s)
