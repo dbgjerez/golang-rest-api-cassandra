@@ -15,8 +15,7 @@ const (
 )
 
 const (
-	LOG_ERROR      = "Error al guardar por: "
-	LOG_DEBUG_POST = "Insertando todo: "
+	LOG_ERROR = "Error al guardar por: "
 )
 const (
 	SELECT = "SELECT id, text FROM todo"
@@ -37,10 +36,9 @@ func DeleteOne(writer http.ResponseWriter, request *http.Request, session *gocql
 	writer.WriteHeader(200)
 }
 
-func PostTodo(writer http.ResponseWriter, request *http.Request, session *gocql.Session) {
-	var t Todo
-	json.NewDecoder(request.Body).Decode(&t)
-	save(session, &t)
+func (t Todo) PostTodo(writer http.ResponseWriter, todo *Todo, session *gocql.Session) {
+	writer.WriteHeader(200)
+	save(session, todo)
 }
 
 func deleteOne(session *gocql.Session, id gocql.UUID) {
@@ -62,7 +60,6 @@ func findAll(session *gocql.Session) []Todo {
 
 func save(session *gocql.Session, todo *Todo) {
 	var id gocql.UUID = gocql.TimeUUID()
-	log.Println(DEBUG, LOG_DEBUG_POST, id, todo.Name)
 	if err := session.Query(INSERT,
 		id, todo.Name).Exec(); err != nil {
 		log.Println(LOG_ERROR, err)
