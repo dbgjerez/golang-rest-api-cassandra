@@ -7,8 +7,15 @@ import (
 	"net/http"
 )
 
+type LogLevel string
+
 const (
-	LOG_ERROR = "Error al guardar por: "
+	DEBUG LogLevel = "DEBUG"
+)
+
+const (
+	LOG_ERROR      = "Error al guardar por: "
+	LOG_DEBUG_POST = "Insertando todo: "
 )
 const (
 	SELECT = "SELECT id, text FROM todo"
@@ -40,8 +47,10 @@ func findAll(session *gocql.Session) []Todo {
 }
 
 func save(session *gocql.Session, todo *Todo) {
+	var id gocql.UUID = gocql.TimeUUID()
+	log.Println(DEBUG, LOG_DEBUG_POST, id, todo.Name)
 	if err := session.Query(INSERT,
-		gocql.TimeUUID(), todo.Name).Exec(); err != nil {
+		id, todo.Name).Exec(); err != nil {
 		log.Println(LOG_ERROR, err)
 	}
 }
