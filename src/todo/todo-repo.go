@@ -3,6 +3,7 @@ package todo
 import (
 	"encoding/json"
 	"github.com/gocql/gocql"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 )
@@ -20,6 +21,7 @@ const (
 const (
 	SELECT = "SELECT id, text FROM todo"
 	INSERT = "INSERT INTO todo (id, text) VALUES (?, ?)"
+	DELETE = "DELETE from todo where id = ?"
 )
 
 func GetTodo(writer http.ResponseWriter, request *http.Request, session *gocql.Session) {
@@ -27,10 +29,22 @@ func GetTodo(writer http.ResponseWriter, request *http.Request, session *gocql.S
 	json.NewEncoder(writer).Encode(&todo)
 }
 
+func DeleteOne(writer http.ResponseWriter, request *http.Request, session *gocql.Session) {
+	var id gocql.UUID
+	vars := mux.Vars(request)
+	id, _ = gocql.ParseUUID(vars["id"])
+	deleteOne(session, id)
+	writer.WriteHeader(200)
+}
+
 func PostTodo(writer http.ResponseWriter, request *http.Request, session *gocql.Session) {
 	var t Todo
 	json.NewDecoder(request.Body).Decode(&t)
 	save(session, &t)
+}
+
+func deleteOne(session *gocql.Session, id gocql.UUID) {
+	session.Query(DELETE, id)
 }
 
 func findAll(session *gocql.Session) []Todo {

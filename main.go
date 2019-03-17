@@ -18,6 +18,7 @@ const (
 const (
 	PathGetAll = "/todo"
 	PathPost   = "/todo"
+	PathDelete = "/todo/{id}"
 )
 
 const (
@@ -39,6 +40,9 @@ func main() {
 	router.HandleFunc(PathPost, func(writer http.ResponseWriter, request *http.Request) {
 		todo.PostTodo(writer, request, s)
 	}).Methods(POST)
+	router.HandleFunc(PathDelete, func(writer http.ResponseWriter, request *http.Request) {
+		todo.DeleteOne(writer, request, s)
+	}).Methods(DELETE)
 
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
