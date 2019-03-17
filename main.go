@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/dbgjerez/go-todo-rest-api-cassandra/src/todo"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -15,7 +16,8 @@ const (
 )
 
 const (
-	PATH = "/todo"
+	PathGetAll = "/todo"
+	PathPost   = "/todo"
 )
 
 const (
@@ -27,9 +29,16 @@ const (
 
 func main() {
 	log.Println(INFO, "Servidor iniciado")
-	router := mux.NewRouter()
 
-	router.HandleFunc(PATH, GetTodo).Methods(GET)
+	s := todo.InitCluster()
+
+	router := mux.NewRouter()
+	router.HandleFunc(PathGetAll, func(writer http.ResponseWriter, request *http.Request) {
+		todo.GetTodo(writer, request, s)
+	}).Methods(GET)
+	router.HandleFunc(PathPost, func(writer http.ResponseWriter, request *http.Request) {
+		todo.PostTodo(writer, request, s)
+	}).Methods(POST)
 
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
