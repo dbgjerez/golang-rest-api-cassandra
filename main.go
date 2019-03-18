@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/dbgjerez/go-todo-rest-api-cassandra/src/todo"
+	"github.com/gocql/gocql"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -24,9 +25,10 @@ const (
 )
 
 const (
-	PathGetAll = "/todo"
-	PathPost   = "/todo"
-	PathDelete = "/todo/{id}"
+	PathGetAll  = "/todo"
+	PathPost    = "/todo"
+	PathDelete  = "/todo/{id}"
+	PathGetById = "/todo/{id}"
 )
 
 const (
@@ -42,19 +44,52 @@ func main() {
 	s := todo.InitCluster()
 
 	router := mux.NewRouter()
-	router.HandleFunc(PathGetAll, func(writer http.ResponseWriter, request *http.Request) {
-		log.Println(DEBUG, LOG_GET_ALL)
-		todo.GetTodo(writer, request, s)
-	}).Methods(GET)
-	router.HandleFunc(PathPost, func(writer http.ResponseWriter, request *http.Request) {
-		var todo *todo.Todo
-		json.NewDecoder(request.Body).Decode(&todo)
-		log.Println(DEBUG, LOG_POST, todo)
-		todo.PostTodo(writer, todo, s)
-	}).Methods(POST)
-	router.HandleFunc(PathDelete, func(writer http.ResponseWriter, request *http.Request) {
-		todo.DeleteOne(writer, request, s)
-	}).Methods(DELETE)
+	router.HandleFunc(PathGetAll, getAll(s)).Methods(GET)
+	router.HandleFunc(PathGetById, getById(s)).Methods(GET)
+	router.HandleFunc(PathPost, post(s)).Methods(POST)
+	router.HandleFunc(PathDelete, delete(s)).Methods(DELETE)
 
 	log.Fatal(http.ListenAndServe(":8000", router))
+}
+
+func getById(s *gocql.Session) func(writer http.ResponseWriter, request *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		var id gocql.UUID
+		vars := mux.Vars(request)
+		id, _ = gocql.ParseUUID(vars["id"])
+		t := todo.GetById(id, s)
+		json.NewEncoder(writer).Encode(&t)
+	}
+}
+
+func delete(s *gocql.Session) func(writer http.ResponseWriter, request *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		var id gocql.UUID
+		vars := mux.Vars(request)
+		id, _ = gocql.ParseUUID(vars["id"])
+		todo.DeleteOne(id, s)
+	}
+}
+
+func getAll(s *gocql.Session) func(writer http.ResponseWriter, request *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		log.Println(DEBUG, LOG_GET_ALL)
+		res := todo.GetTodo(s)
+		json.NewEncoder(writer).Encode(&res)
+	}
+}
+
+func post(s *gocql.Session) func(writer http.ResponseWriter, request *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		t := read(request)
+		log.Println(DEBUG, LOG_POST, t)
+		todo.PostTodo(&t, s)
+		writer.WriteHeader(200)
+	}
+}
+
+func read(r *http.Request) todo.Todo {
+	var t todo.Todo
+	json.NewDecoder(r.Body).Decode(&t)
+	return t
 }
