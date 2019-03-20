@@ -11,10 +11,14 @@ const (
 	LOG_ERROR = "Error al guardar por: "
 )
 const (
-	SELECT       = "SELECT id, text FROM todo"
-	SELECT_BY_ID = "SELECT id, text FROM todo where id = ?"
-	INSERT       = "INSERT INTO todo (id, text) VALUES (?, ?)"
-	DELETE       = "DELETE from todo where id = ?"
+	TABLE        = "todo"
+	FIELD_ID     = "id"
+	FIELD_TEXT   = "text"
+	SELECT       = "SELECT " + FIELD_ID + ", " + FIELD_TEXT + " FROM " + TABLE
+	SELECT_BY_ID = "SELECT " + FIELD_ID + ", " + FIELD_TEXT + " FROM " + TABLE + " WHERE " + FIELD_ID + " = ?"
+	INSERT       = "INSERT INTO " + TABLE + " (" + FIELD_ID + ", " + FIELD_TEXT + ") VALUES (?, ?)"
+	DELETE       = "DELETE from " + TABLE + " WHERE " + FIELD_ID + " = ?"
+	UPDATE       = "UPDATE " + TABLE + " SET " + FIELD_TEXT + " = ? WHERE " + FIELD_ID + " = ? IF EXISTS"
 )
 
 func GetById(uuid gocql.UUID, session *gocql.Session) Todo {
@@ -31,6 +35,10 @@ func DeleteOne(id gocql.UUID, session *gocql.Session) {
 
 func PostTodo(t *Todo, session *gocql.Session) {
 	save(session, t)
+}
+
+func UpdateOne(uuid gocql.UUID, todo *Todo, session *gocql.Session) {
+	update(uuid, todo, session)
 }
 
 func deleteOne(session *gocql.Session, id gocql.UUID) {
@@ -61,4 +69,8 @@ func save(session *gocql.Session, todo *Todo) {
 	if err := session.Query(INSERT, id, todo.Name).Exec(); err != nil {
 		log.Println(LOG_ERROR, err)
 	}
+}
+
+func update(uuid gocql.UUID, todo *Todo, session *gocql.Session) {
+	session.Query(UPDATE, todo.Name, uuid).Exec()
 }

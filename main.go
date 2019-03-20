@@ -29,6 +29,7 @@ const (
 	PathPost    = "/todo"
 	PathDelete  = "/todo/{id}"
 	PathGetById = "/todo/{id}"
+	PathPut     = "/todo/{id}"
 )
 
 const (
@@ -46,17 +47,24 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc(PathGetAll, getAll(s)).Methods(GET)
 	router.HandleFunc(PathGetById, getById(s)).Methods(GET)
+	router.HandleFunc(PathPut, put(s)).Methods(PUT)
 	router.HandleFunc(PathPost, post(s)).Methods(POST)
 	router.HandleFunc(PathDelete, delete(s)).Methods(DELETE)
 
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
 
+func put(session *gocql.Session) func(http.ResponseWriter, *http.Request) {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		id := extractId(request)
+		t := read(request)
+		todo.UpdateOne(id, &t, session)
+	}
+}
+
 func getById(s *gocql.Session) func(writer http.ResponseWriter, request *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		var id gocql.UUID
-		vars := mux.Vars(request)
-		id, _ = gocql.ParseUUID(vars["id"])
+		id := extractId(request)
 		t := todo.GetById(id, s)
 		json.NewEncoder(writer).Encode(&t)
 	}
@@ -64,11 +72,16 @@ func getById(s *gocql.Session) func(writer http.ResponseWriter, request *http.Re
 
 func delete(s *gocql.Session) func(writer http.ResponseWriter, request *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		var id gocql.UUID
-		vars := mux.Vars(request)
-		id, _ = gocql.ParseUUID(vars["id"])
+		id := extractId(request)
 		todo.DeleteOne(id, s)
 	}
+}
+
+func extractId(request *http.Request) gocql.UUID {
+	var id gocql.UUID
+	vars := mux.Vars(request)
+	id, _ = gocql.ParseUUID(vars["id"])
+	return id
 }
 
 func getAll(s *gocql.Session) func(writer http.ResponseWriter, request *http.Request) {
