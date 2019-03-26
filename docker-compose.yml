@@ -1,0 +1,18 @@
+version: '3.6'
+services:
+  cassandra:
+    restart: always
+    container_name: cassandra
+    image: cassandra
+    volumes:
+      - ./cassandra_data:/var/lib/cassandra
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+  go-api:
+    restart: always
+    container_name: go-api
+    image: b0rr3g0/go-cassandra-api:0.0.1-SNAPSHOT
+    ports:
+      - 8000:8000
+volumes:
+  cassandra_data:
+    driver: local
