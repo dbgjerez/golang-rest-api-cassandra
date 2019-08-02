@@ -17,7 +17,7 @@ docker run -p 9042:9042 -d --name cassandra cassandra
 ```bash
 docker run -it --link cassandra --rm cassandra sh -c 'exec cqlsh "$CASSANDRA_PORT_9042_TCP_ADDR"'
 
-CREATE KEYSPACE "example" WITH REPLICATION = {     'class' : 'SimpleStrategy',     'replication_factor' : 1    };
+CREATE KEYSPACE IF NOT EXISTS "example" WITH REPLICATION = {     'class' : 'SimpleStrategy',     'replication_factor' : 1    };
 
-create table example.todo (id uuid PRIMARY KEY, text text); 
+create table if not exists example.todo (id uuid PRIMARY KEY, text text); 
 ``` 
