@@ -1,8 +1,9 @@
 package todo
 
 import (
-	"github.com/gocql/gocql"
 	"log"
+
+	"github.com/gocql/gocql"
 )
 
 type LogLevel string
@@ -47,7 +48,7 @@ func deleteOne(session *gocql.Session, id gocql.UUID) {
 
 func getOne(id gocql.UUID, session *gocql.Session) Todo {
 	var t Todo
-	session.Query(SELECT_BY_ID, id).Scan(&t.ID, &t.Name);
+	session.Query(SELECT_BY_ID, id).Scan(&t.ID, &t.Name)
 	return t
 }
 
