@@ -24,16 +24,3 @@ docker run -p 8000:8000 -e CASSANDRA_URL=cassandra:9042 --link=cassandra todo-ap
 ```
 
 ## Kubernetes
-
-
-### Docker
-
-### Config keyspace and table
-
-```bash
-docker run -it --link cassandra --rm cassandra sh -c 'exec cqlsh "$CASSANDRA_PORT_9042_TCP_ADDR"'
-
-CREATE KEYSPACE IF NOT EXISTS "example" WITH REPLICATION = {     'class' : 'SimpleStrategy',     'replication_factor' : 1    };
-
-create table if not exists example.todo (id uuid PRIMARY KEY, text text); 
-``` 
