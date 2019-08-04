@@ -20,7 +20,7 @@ docker build -t todo-api .
 
 When the application has been built as Docker image, to run it:
 ```bash
-docker run -p 8000:8000 -e CASSANDRA_URL=cassandra:9042 --link=cassandra cassandra-test
+docker run -p 8000:8000 -e CASSANDRA_URL=cassandra:9042 --link=cassandra todo-api
 ```
 
 ## Kubernetes
