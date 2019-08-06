@@ -16,7 +16,9 @@ const (
 
 func InitCluster() *gocql.Session {
 	cassandra := envVar(CASSANDRA_URL)
-	cluster := createCluster(cassandra, KEYSPACE_NAME)
+	auth := gocql.PasswordAuthenticator{"cassandra", "cassandra"}
+	// TODO parametrizar
+	cluster := createCluster(cassandra, KEYSPACE_NAME, auth)
 	session, err := cluster.CreateSession()
 	//defer session.Close()
 	if err != nil {
@@ -26,11 +28,12 @@ func InitCluster() *gocql.Session {
 	return session
 }
 
-func createCluster(host string, keyspace string) *gocql.ClusterConfig {
+func createCluster(host string, keyspace string, authentication gocql.PasswordAuthenticator) *gocql.ClusterConfig {
 	cluster := gocql.NewCluster(host)
+	cluster.Authenticator = authentication
 	createKeyspace(keyspace, cluster)
 	cluster.Keyspace = keyspace
-	cluster.Consistency = gocql.Quorum
+	cluster.Consistency = gocql.One
 	return cluster
 }
 
