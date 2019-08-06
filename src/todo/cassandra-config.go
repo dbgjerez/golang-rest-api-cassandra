@@ -11,29 +11,49 @@ const (
 	CREATE_KEYSPACE = " CREATE KEYSPACE IF NOT EXISTS " + KEYSPACE_NAME + " WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
 	CREATE_TABLE    = "create table if not exists example.todo (id uuid PRIMARY KEY, text text);"
 	KEYSPACE_NAME   = "example"
+	CASSANDRA_URL   = "CASSANDRA_URL"
 )
 
 func InitCluster() *gocql.Session {
-	cassandra, exists := os.LookupEnv("CASSANDRA_URL")
-	if !exists {
-		log.Fatal("URL de cassandra no encontrada")
-	} else {
-		log.Println("INFO", "Conectando a Cassandra: "+cassandra)
+	cassandra := envVar(CASSANDRA_URL)
+	cluster := createCluster(cassandra, KEYSPACE_NAME)
+	session, err := cluster.CreateSession()
+	//defer session.Close()
+	if err != nil {
+		log.Fatal("FATAL", err)
 	}
-	cluster := gocql.NewCluster(cassandra)
-	createKeyspace(cluster)
-	cluster.Keyspace = KEYSPACE_NAME
-	cluster.Consistency = gocql.Quorum
-	session, _ := cluster.CreateSession()
 	createTodoTable(session)
 	return session
 }
 
-func createKeyspace(cluster *gocql.ClusterConfig) {
-	session, _ := cluster.CreateSession()
-	log.Println("INFO", "Creando keyspace "+KEYSPACE_NAME+" si no existe...")
-	session.Query(CREATE_KEYSPACE).Exec()
-	session.Close()
+func createCluster(host string, keyspace string) *gocql.ClusterConfig {
+	cluster := gocql.NewCluster(host)
+	createKeyspace(keyspace, cluster)
+	cluster.Keyspace = keyspace
+	cluster.Consistency = gocql.Quorum
+	return cluster
+}
+
+func envVar(key string) string {
+	cassandra, exists := os.LookupEnv(key)
+	if !exists {
+		log.Fatal("FATAL", "Valor de "+key+" no encontrado")
+	} else {
+		log.Println("INFO", "Recuperado valor de "+key)
+	}
+	return cassandra
+}
+
+func createKeyspace(keyspace string, cluster *gocql.ClusterConfig) {
+	session, err := cluster.CreateSession()
+	defer session.Close()
+	if err != nil {
+		log.Fatal("FATAL", err)
+	}
+	if err := session.Query(CREATE_KEYSPACE).Exec(); err != nil {
+		log.Fatal("FATAL", err)
+	}
+	log.Println("INFO", "Configurado keyspace: "+keyspace)
 }
 
 func createTodoTable(session *gocql.Session) {
