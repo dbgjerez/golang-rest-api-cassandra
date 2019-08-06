@@ -46,3 +46,6 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+cassandra:
+  enabled: true
