@@ -8,16 +8,17 @@ import (
 )
 
 const (
-	CREATE_KEYSPACE = " CREATE KEYSPACE IF NOT EXISTS " + KEYSPACE_NAME + " WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
-	CREATE_TABLE    = "create table if not exists example.todo (id uuid PRIMARY KEY, text text);"
-	KEYSPACE_NAME   = "example"
-	CASSANDRA_URL   = "CASSANDRA_URL"
+	CREATE_KEYSPACE    = " CREATE KEYSPACE IF NOT EXISTS " + KEYSPACE_NAME + " WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
+	CREATE_TABLE       = "create table if not exists example.todo (id uuid PRIMARY KEY, text text);"
+	KEYSPACE_NAME      = "example"
+	CASSANDRA_URL      = "CASSANDRA_URL"
+	CASSANDRA_USERNAME = "CASSANDRA_USERNAME"
+	CASSANDRA_PASSWORD = "CASSANDRA_PASSWORD"
 )
 
 func InitCluster() *gocql.Session {
 	cassandra := envVar(CASSANDRA_URL)
-	auth := gocql.PasswordAuthenticator{"cassandra", "cassandra"}
-	// TODO parametrizar
+	auth := gocql.PasswordAuthenticator{Username: envVar(CASSANDRA_USERNAME), Password: envVar(CASSANDRA_PASSWORD)}
 	cluster := createCluster(cassandra, KEYSPACE_NAME, auth)
 	session, err := cluster.CreateSession()
 	//defer session.Close()
