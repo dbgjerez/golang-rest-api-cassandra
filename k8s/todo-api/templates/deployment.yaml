@@ -23,20 +23,24 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          env: 
+          env:
             - name: "CASSANDRA_URL"
-              value: "{{ .Values.cassandra.url }}"
+              value: "{{ .Values.app.cassandra.url }}"
+            - name: "CASSANDRA_USERNAME"
+              value: "{{ .Values.app.cassandra.username }}"
+            - name: "CASSANDRA_PASSWORD"
+              value: "{{ .Values.app.cassandra.password }}"
           ports:
             - name: http
-              containerPort: 80
+              containerPort: {{ .Values.app.port }}
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /
+              path: "{{ .Values.app.healthcheck }}"
               port: http
           readinessProbe:
             httpGet:
-              path: /
+              path: "{{ .Values.app.healthcheck }}"
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

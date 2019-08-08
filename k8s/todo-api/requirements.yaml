@@ -1,5 +1,4 @@
 dependencies:
   - name: cassandra
-    version: 3.1.1
+    version: latest
     repository: https://charts.bitnami.com/bitnami
-    condition: cassandra.enabled
