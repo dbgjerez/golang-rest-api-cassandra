@@ -17,3 +17,5 @@
 # File
 golang
 go-todo-rest-api-cassandra
+k8s/todo-api/requirements.lock
+k8s/todo-api/charts/
