@@ -24,3 +24,12 @@ docker run -p 8000:8000 -e CASSANDRA_URL=cassandra:9042 --link=cassandra todo-ap
 ```
 
 ## Kubernetes
+helm repo add bitnami https://charts.bitnami.com/bitnami
+
+helm dependency update
+
+kubectl create namespace des
+
+helm install --name todo-api --namespace des todo-api
+
+helm upgrade todo-api todo-api
