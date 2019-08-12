@@ -1,4 +1,7 @@
 dependencies:
   - name: cassandra
-    version: latest
+    version: 3.1.1
     repository: https://charts.bitnami.com/bitnami
+  - name: app
+    version: 0.1.0
+    repository: file://subcharts/app
