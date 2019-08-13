@@ -29,7 +29,10 @@ spec:
             - name: "CASSANDRA_USERNAME"
               value: "{{ .Values.cassandra.username }}"
             - name: "CASSANDRA_PASSWORD"
-              value: "{{ .Values.cassandra.password }}"
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.cassandra.secret.name }}"
+                  key: cassandra-password
           ports:
             - name: http
               containerPort: {{ .Values.port }}

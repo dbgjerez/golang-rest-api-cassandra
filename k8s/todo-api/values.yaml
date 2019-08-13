@@ -1,12 +1,13 @@
 cassandra:
   dbUser:
-    user: user
-    password: password
+    existingSecret: todo-api-cassandra-secret
 
 app:
   cassandra:
-    username: user
-    password: password
+    username: cassandra
     url: todo-api-cassandra
+    secret:
+      name: todo-api-cassandra-secret
   port: 8000
   healthcheck: /todo
+  replicaCount: 2

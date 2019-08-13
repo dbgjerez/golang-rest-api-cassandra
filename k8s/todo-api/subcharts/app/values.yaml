@@ -42,3 +42,10 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+cassandra:
+  url: localhost:9042
+  username: cassandra
+  secret:
+    name: cassandra-secret
+    value: c0UxdHY0bFE0ZkZKZTdDRWdoK3F0ZCt0U2ljY0pJVU5Rd2NqREExQk1Vbz0K

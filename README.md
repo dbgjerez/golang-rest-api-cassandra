@@ -30,6 +30,6 @@ helm dependency update
 
 kubectl create namespace des
 
-helm install --name todo-api --namespace des todo-api
+helm install --name todo-api --namespace des --set app.cassandra.secret.value=$(gpg --gen-random --armor 1 32 | base64) todo-api
 
 helm upgrade todo-api todo-api
