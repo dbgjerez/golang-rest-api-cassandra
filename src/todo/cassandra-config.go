@@ -45,7 +45,7 @@ func envVar(key string) string {
 	if !exists {
 		log.Fatal("FATAL", "Valor de "+key+" no encontrado")
 	} else {
-		log.Println("INFO", "Recuperado valor de "+key+" ---> "+cassandra)
+		log.Println("INFO", "Recuperado valor de "+key)
 	}
 	return cassandra
 }
