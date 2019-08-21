@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"time"
 )
 
 type LogLevel string
@@ -20,8 +21,8 @@ const (
 const (
 	LOG_POST    = "Creando todo: "
 	LOG_GET_ALL = "Buscando todos los todo"
-	LOG_GET_ONE = "Recuperando todo con id:"
-	LOG_DELETE  = "Eliminando todo con id:"
+	LOG_GET_ONE = "Recuperando todo con id: "
+	LOG_DELETE  = "Eliminando todo con id: "
 )
 
 const (
@@ -33,18 +34,22 @@ const (
 )
 
 const (
-	GET    = "GET"
-	POST   = "POST"
-	PUT    = "PUT"
-	DELETE = "DELETE"
+	GET             = "GET"
+	POST            = "POST"
+	PUT             = "PUT"
+	DELETE          = "DELETE"
+	ContentType     = "Content-Type"
+	ContentTypeJson = "application/json"
 )
 
 func main() {
-	log.Println(INFO, "Servidor iniciado")
+	log.Println(INFO, "Servidor iniciado a las "+time.Now().String())
 
 	s := todo.InitCluster()
 
 	router := mux.NewRouter()
+	router.Use(commonMiddleware)
+
 	router.HandleFunc(PathGetAll, getAll(s)).Methods(GET)
 	router.HandleFunc(PathGetById, getById(s)).Methods(GET)
 	router.HandleFunc(PathPut, put(s)).Methods(PUT)
@@ -52,6 +57,13 @@ func main() {
 	router.HandleFunc(PathDelete, delete(s)).Methods(DELETE)
 
 	log.Fatal(http.ListenAndServe(":8000", router))
+}
+
+func commonMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add(ContentType, ContentTypeJson)
+		next.ServeHTTP(w, r)
+	})
 }
 
 func put(session *gocql.Session) func(http.ResponseWriter, *http.Request) {
@@ -86,8 +98,9 @@ func extractId(request *http.Request) gocql.UUID {
 
 func getAll(s *gocql.Session) func(writer http.ResponseWriter, request *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		log.Println(DEBUG, LOG_GET_ALL)
-		res := todo.GetTodo(s)
+		IdSession := request.Header.Get("IdSession")
+		log.Println(DEBUG, LOG_GET_ALL+" "+IdSession)
+		res := todo.GetTodo(s, IdSession)
 		json.NewEncoder(writer).Encode(&res)
 	}
 }
@@ -95,8 +108,8 @@ func getAll(s *gocql.Session) func(writer http.ResponseWriter, request *http.Req
 func post(s *gocql.Session) func(writer http.ResponseWriter, request *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		t := read(request)
-		log.Println(DEBUG, LOG_POST, t)
 		todo.PostTodo(&t, s)
+		log.Println(DEBUG, LOG_POST, t)
 		writer.WriteHeader(200)
 	}
 }
