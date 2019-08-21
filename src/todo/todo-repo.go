@@ -1,9 +1,9 @@
 package todo
 
 import (
-	"log"
-
+	b64 "encoding/base64"
 	"github.com/gocql/gocql"
+	"log"
 )
 
 type LogLevel string
@@ -26,8 +26,8 @@ func GetById(uuid gocql.UUID, session *gocql.Session) Todo {
 	return getOne(uuid, session)
 }
 
-func GetTodo(session *gocql.Session) []Todo {
-	return findAll(session)
+func GetTodo(session *gocql.Session, state string) []Todo {
+	return findAll(session, state)
 }
 
 func DeleteOne(id gocql.UUID, session *gocql.Session) {
@@ -52,12 +52,26 @@ func getOne(id gocql.UUID, session *gocql.Session) Todo {
 	return t
 }
 
-func findAll(session *gocql.Session) []Todo {
+func findAll(session *gocql.Session, state string) []Todo {
 	var ts []Todo
 	var t Todo
-	it := session.Query(SELECT).Iter()
-	for it.Scan(&t.ID, &t.Name) {
+	query := session.Query(SELECT)
+	if state != "" {
+		st, _ := b64.StdEncoding.DecodeString(state)
+		query.PageState(st)
+	}
+	it := query.PageSize(2).Iter()
+	//it := session.Query(SELECT).PageState(state).PageSize(10).Iter()
+	total := it.NumRows()
+	sw := it.WillSwitchPage()
+	log.Println("DEBUG", total)
+	count := 0
+	for !sw && count < 100 && it.Scan(&t.ID, &t.Name) {
+		//t.State = b64.StdEncoding.EncodeToString(it.PageState())
 		ts = append(ts, t)
+		log.Println(sw)
+		count++
+		sw = it.WillSwitchPage()
 	}
 	if err := it.Close(); err != nil {
 		log.Println(LOG_ERROR, err)
@@ -66,8 +80,8 @@ func findAll(session *gocql.Session) []Todo {
 }
 
 func save(session *gocql.Session, todo *Todo) {
-	var id gocql.UUID = gocql.TimeUUID()
-	if err := session.Query(INSERT, id, todo.Name).Exec(); err != nil {
+	todo.ID = gocql.TimeUUID()
+	if err := session.Query(INSERT, todo.ID, todo.Name).Exec(); err != nil {
 		log.Println(LOG_ERROR, err)
 	}
 }

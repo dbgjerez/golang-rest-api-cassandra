@@ -19,7 +19,7 @@ const (
 )
 
 const (
-	LOG_POST    = "Creando todo: "
+	LOG_POST    = "Creado todo: "
 	LOG_GET_ALL = "Buscando todos los todo"
 	LOG_GET_ONE = "Recuperando todo con id: "
 	LOG_DELETE  = "Eliminando todo con id: "
@@ -110,7 +110,7 @@ func post(s *gocql.Session) func(writer http.ResponseWriter, request *http.Reque
 		t := read(request)
 		todo.PostTodo(&t, s)
 		log.Println(DEBUG, LOG_POST, t)
-		writer.WriteHeader(200)
+		writer.WriteHeader(201)
 	}
 }
 
