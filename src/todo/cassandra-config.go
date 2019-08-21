@@ -14,6 +14,7 @@ const (
 	CASSANDRA_URL      = "CASSANDRA_URL"
 	CASSANDRA_USERNAME = "CASSANDRA_USERNAME"
 	CASSANDRA_PASSWORD = "CASSANDRA_PASSWORD"
+	PAGE_SIZE          = 10
 )
 
 func InitCluster() *gocql.Session {
@@ -26,6 +27,7 @@ func InitCluster() *gocql.Session {
 		log.Fatal("FATAL", err)
 	}
 	createTodoTable(session)
+	session.SetPageSize(PAGE_SIZE)
 	return session
 }
 
@@ -43,7 +45,7 @@ func envVar(key string) string {
 	if !exists {
 		log.Fatal("FATAL", "Valor de "+key+" no encontrado")
 	} else {
-		log.Println("INFO", "Recuperado valor de "+key)
+		log.Println("INFO", "Recuperado valor de "+key+" ---> "+cassandra)
 	}
 	return cassandra
 }
