@@ -20,7 +20,7 @@ const (
 
 const (
 	LOG_POST    = "Creado todo: "
-	LOG_GET_ALL = "Buscando todos los todo"
+	LOG_GET_ALL = "Buscando todos los todo "
 	LOG_GET_ONE = "Recuperando todo con id: "
 	LOG_DELETE  = "Eliminando todo con id: "
 )
@@ -34,12 +34,13 @@ const (
 )
 
 const (
-	GET             = "GET"
-	POST            = "POST"
-	PUT             = "PUT"
-	DELETE          = "DELETE"
-	ContentType     = "Content-Type"
-	ContentTypeJson = "application/json"
+	GET               = "GET"
+	POST              = "POST"
+	PUT               = "PUT"
+	DELETE            = "DELETE"
+	HeaderContenttype = "Content-Type"
+	HeaderIdSession   = "IdSession"
+	ContentTypeJson   = "application/json"
 )
 
 func main() {
@@ -61,7 +62,7 @@ func main() {
 
 func commonMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add(ContentType, ContentTypeJson)
+		w.Header().Add(HeaderContenttype, ContentTypeJson)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -77,6 +78,7 @@ func put(session *gocql.Session) func(http.ResponseWriter, *http.Request) {
 func getById(s *gocql.Session) func(writer http.ResponseWriter, request *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		id := extractId(request)
+		log.Println(DEBUG, LOG_GET_ONE+id.String())
 		t := todo.GetById(id, s)
 		json.NewEncoder(writer).Encode(&t)
 	}
@@ -98,9 +100,10 @@ func extractId(request *http.Request) gocql.UUID {
 
 func getAll(s *gocql.Session) func(writer http.ResponseWriter, request *http.Request) {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		IdSession := request.Header.Get("IdSession")
-		log.Println(DEBUG, LOG_GET_ALL+" "+IdSession)
-		res := todo.GetTodo(s, IdSession)
+		IdSession := request.Header.Get(HeaderIdSession)
+		log.Println(DEBUG, LOG_GET_ALL+IdSession)
+		res, state := todo.GetTodo(s, IdSession)
+		writer.Header().Add(HeaderIdSession, string(state))
 		json.NewEncoder(writer).Encode(&res)
 	}
 }

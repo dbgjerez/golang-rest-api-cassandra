@@ -9,7 +9,8 @@ import (
 type LogLevel string
 
 const (
-	LOG_ERROR = "Error al guardar por: "
+	LOG_ERROR          = "Error al guardar por: "
+	LOG_ERROR_FIND_ALL = "Error al cerrar el cursor: "
 )
 const (
 	TABLE        = "todo"
@@ -26,7 +27,7 @@ func GetById(uuid gocql.UUID, session *gocql.Session) Todo {
 	return getOne(uuid, session)
 }
 
-func GetTodo(session *gocql.Session, state string) []Todo {
+func GetTodo(session *gocql.Session, state string) ([]Todo, string) {
 	return findAll(session, state)
 }
 
@@ -52,7 +53,7 @@ func getOne(id gocql.UUID, session *gocql.Session) Todo {
 	return t
 }
 
-func findAll(session *gocql.Session, state string) []Todo {
+func findAll(session *gocql.Session, state string) ([]Todo, string) {
 	var ts []Todo
 	var t Todo
 	query := session.Query(SELECT)
@@ -60,23 +61,16 @@ func findAll(session *gocql.Session, state string) []Todo {
 		st, _ := b64.StdEncoding.DecodeString(state)
 		query.PageState(st)
 	}
-	it := query.PageSize(2).Iter()
-	//it := session.Query(SELECT).PageState(state).PageSize(10).Iter()
-	total := it.NumRows()
+	it := query.Iter()
 	sw := it.WillSwitchPage()
-	log.Println("DEBUG", total)
-	count := 0
-	for !sw && count < 100 && it.Scan(&t.ID, &t.Name) {
-		//t.State = b64.StdEncoding.EncodeToString(it.PageState())
+	for !sw && it.Scan(&t.ID, &t.Name) {
 		ts = append(ts, t)
-		log.Println(sw)
-		count++
 		sw = it.WillSwitchPage()
 	}
 	if err := it.Close(); err != nil {
-		log.Println(LOG_ERROR, err)
+		log.Println(LOG_ERROR_FIND_ALL, err)
 	}
-	return ts
+	return ts, b64.StdEncoding.EncodeToString(it.PageState())
 }
 
 func save(session *gocql.Session, todo *Todo) {
