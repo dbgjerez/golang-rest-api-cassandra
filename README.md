@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/dbgjerez/go-todo-rest-api-cassandra)](https://goreportcard.com/report/github.com/dbgjerez/go-todo-rest-api-cassandra)
+
 # go-todo-rest-api-cassandra
 Example using CQL and golang REST API. 
 
